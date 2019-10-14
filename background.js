@@ -1,8 +1,24 @@
 var portsArray = [];
+var data = 'P3B';
+
+// Convert string to ArrayBuffer
+var convertStringToArrayBuffer = function(data) {
+  var buf = new ArrayBuffer(data.length);
+  var bufView = new Uint8Array(buf);
+  for (var i = 0; i < data.length; i++) {
+    bufView[i] = data.charCodeAt(i);
+  }
+  return buf;
+}
 
 var onConnect = function (connectionInfo) {
-  console.log(connectionInfo.connectionId);
-  chrome.serial.send(connectionInfo.connectionId, 'P3B', function () {})
+  if (!connectionInfo) {
+    throw 'Connection Failed'
+  } else if (connectionInfo.connectionId < 0) {
+    throw 'Invalid Connection'
+  } else {
+    chrome.serial.send(connectionInfo.connectionId, convertStringToArrayBuffer(data), function () {})
+  }
 }
 
 // Find Available Ports
@@ -12,7 +28,7 @@ var onGetDevices = function (ports) {
   }
   console.log(portsArray[0]);
   if (portsArray) {
-    chrome.serial.connect('COM1', {
+    chrome.serial.connect(portsArray[0], {
       bitrate: 115200
     }, onConnect);
   }
